@@ -1,12 +1,15 @@
 import torch
 import torch.nn as nn
+import torch.nn.functional as F
 import torchvision.models as models
 
 class ResNet50WithMask(nn.Module):
     def __init__(self, num_classes):
         super(ResNet50WithMask, self).__init__()
-        # 載入預設範本 ResNet50 模型（不包含最後的全連接層）
-        self.resnet50 = models.resnet50(pretrained=True)
+        # 載入預訓練的 ResNet50（使用新 weights 寫法）
+        self.resnet50 = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)
+        
+        # 主分支 - 影像處理
         self.conv1 = self.resnet50.conv1
         self.bn1 = self.resnet50.bn1
         self.relu = self.resnet50.relu
@@ -16,17 +19,17 @@ class ResNet50WithMask(nn.Module):
         self.layer3 = self.resnet50.layer3
         self.layer4 = self.resnet50.layer4
         self.avgpool = self.resnet50.avgpool
-        
-        # 側支：處理 mask
+
+        # 側分支 - mask 處理
         self.mask_branch = nn.Conv2d(1, 64, kernel_size=7, stride=2, padding=3, bias=False)
-        
-        # 合併層：將主支和側支合併（使用加法）
+
+        # 合併主支與側支
         self.merge = nn.Sequential(
             nn.Conv2d(64, 64, kernel_size=1),
             nn.ReLU(inplace=True)
         )
-        
-        # 分類頭
+
+        # 分類器
         self.classifier = nn.Linear(2048, num_classes)
 
     def forward(self, image, mask):
@@ -34,15 +37,19 @@ class ResNet50WithMask(nn.Module):
         x = self.conv1(image)
         x = self.bn1(x)
         x = self.relu(x)
-        
+
         # 側支：處理 mask
         mask_features = self.mask_branch(mask)
-        
-        # 合併：將主支和側支特征相加
+
+        # ⭐️ Resize mask 特徵圖，讓尺寸與 x 一致
+        if mask_features.shape[2:] != x.shape[2:]:
+            mask_features = F.interpolate(mask_features, size=x.shape[2:], mode='bilinear', align_corners=False)
+
+        # 合併兩個分支的特徵
         combined = x + mask_features
         combined = self.merge(combined)
-        
-        # 繼續通過 ResNet50 的其餘層
+
+        # ResNet 下游結構
         x = self.maxpool(combined)
         x = self.layer1(x)
         x = self.layer2(x)
@@ -50,25 +57,7 @@ class ResNet50WithMask(nn.Module):
         x = self.layer4(x)
         x = self.avgpool(x)
         x = torch.flatten(x, 1)
-        
+
         # 分類
         out = self.classifier(x)
         return out
-    
-# 示例：初始化模型
-model = ResNet50WithMask(num_classes=10)  # 假設有 10 個類別
-
-# 定義損失函數和優化器
-criterion = nn.CrossEntropyLoss()
-optimizer = torch.optim.Adam(model.parameters(), lr=0.001)
-
-# 訓練循環（示例）
-def train(model, train_loader, criterion, optimizer, device):
-    model.train()
-    for images, masks, labels in train_loader:
-        images, masks, labels = images.to(device), masks.to(device), labels.to(device)
-        optimizer.zero_grad()
-        outputs = model(images, masks)
-        loss = criterion(outputs, labels)
-        loss.backward()
-        optimizer.step()

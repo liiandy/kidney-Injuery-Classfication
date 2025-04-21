@@ -19,7 +19,12 @@ def load_data(csv_file, base_path):
     for index, row in test_df.iterrows():
         image = row["full_path"]
         mask = row["mask_path"]
-        label = 0 if row['kidney_healthy'] == 1 else 1
+        if row['kidney_low'] == 1:
+            label = 1
+        elif row['kidney_high'] == 1:
+            label = 2  
+        else:
+            label = 0
         test_data_dicts.append({'image': os.path.basename(image), 'image_path': image, 'mask_path': mask, 'label': label})
 
     return test_data_dicts
@@ -33,7 +38,7 @@ def evaluate_model(model_path, csv_file, base_path, batch_size=8, device=None):
     test_dataset = KidneyDataset(test_data_dicts, transform=transform)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    model = ResNet50WithMask(num_classes=2)
+    model = ResNet50WithMask(num_classes=3)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
     model.eval()

@@ -51,6 +51,3 @@ python validate.py --csv_file path/to/csv --base_path path/to/nifti --model_path
 - The model merges features from the CT image and mask for improved classification.
 - The training process saves the best model based on validation accuracy.
 
-## License
-
-This project is licensed under the MIT License.

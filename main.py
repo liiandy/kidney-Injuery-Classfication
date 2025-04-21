@@ -15,7 +15,8 @@ df = pd.read_csv(csv_file)
 base_path = "/workspace/data/a313112015/BiomedParse/out_test/nifti/"
 
 # 新增一欄 'mask_path' 到 df
-df['mask_path'] = df['file_paths'].apply(lambda x: os.path.join(base_path, "mask", *x.split("/")[-3:]))
+df['mask_path'] = df['file_paths'].apply(lambda x: os.path.join(base_path, "kidney", *x.split("/")[-3:]))
+print(df['mask_path'][0])
 
 
 df = df[df['mask_path'].apply(os.path.exists)].reset_index(drop=True)
@@ -41,7 +42,7 @@ print(f"Test: {len(test_df)}")
 
 def data_progress(df, dicts):
     for index, row in df.iterrows():
-        image = row["full_path"]
+        image = row["file_paths"]
         # image_path = image
         # gt = f'/tf/angela0503/Spleen_data/RAS_dilation_10/{row["spleen_injury"]}_{row["chartNo"]}@venous.nii.gz' 
         mask = row["mask_path"]

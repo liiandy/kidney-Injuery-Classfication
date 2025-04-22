@@ -44,7 +44,8 @@ def evaluate(model, dataloader, criterion, device):
     correct = 0
     total = 0
     with torch.no_grad():
-        for images, masks, labels in dataloader:
+        loop = tqdm(dataloader, desc='Validation', leave=False)
+        for images, masks, labels in loop:
             images = images.to(device)
             masks = masks.to(device)
             labels = labels.to(device)

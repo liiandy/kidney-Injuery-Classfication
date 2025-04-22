@@ -107,16 +107,25 @@ def evaluate_model_after_train(model, test_loader, device=None):
 
     print(f"Test Loss: {avg_loss:.4f}")
     print(f"Test Accuracy: {accuracy:.4f}")
-
-    # 混淆矩陣
+    
+    # 計算混淆矩陣
     cm = confusion_matrix(all_labels, all_preds)
-    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["kidney_health", "kidney_low", "kidney_high"])
-    disp.plot(cmap=plt.cm.Blues, values_format='d')
+
+    # 自動產生 label（例如：0, 1, 2）
+    num_classes = cm.shape[0]
+    display_labels = [f"class_{i}" for i in range(num_classes)]
+
+    # 畫圖並儲存
+    fig, ax = plt.subplots(figsize=(6, 6))
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=display_labels)
+    disp.plot(cmap=plt.cm.Blues, values_format='d', ax=ax)
+
     plt.title("Confusion Matrix")
     plt.xlabel("Predicted Label")
     plt.ylabel("True Label")
-    png_out_path = "confusion_matrix.png"
-    plt.savefig(png_out_path)
+    png_out_path = "./result/confusion_matrix.png"
+    plt.savefig(png_out_path, bbox_inches='tight')
+    plt.close()
 
     return cm
 

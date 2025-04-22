@@ -4,7 +4,9 @@ import numpy as np
 from sklearn.model_selection import train_test_split
 
 from torch.utils.data import DataLoader
-from dataset import KidneyDataset, get_transform
+from collections import Counter
+# from dataset import KidneyDataset, get_transform
+from dataset_new import KidneyDataset
 from train import train_model
 from validate import evaluate_model, evaluate_model_after_train
 
@@ -40,6 +42,7 @@ print(f"Train: {len(train_df)}")
 print(f"Valid: {len(valid_df)}")
 print(f"Test: {len(test_df)}")
 
+# +
 def data_progress(df, dicts):
     for index, row in df.iterrows():
         image = row["file_paths"]
@@ -47,15 +50,22 @@ def data_progress(df, dicts):
         # gt = f'/tf/angela0503/Spleen_data/RAS_dilation_10/{row["spleen_injury"]}_{row["chartNo"]}@venous.nii.gz' 
         mask = row["mask_path"]
         
-        if row['kidney_low'] == 1:
+        
+        if row['any_injury'] == 1:
             label = 1
-        elif row['kidney_high'] == 1:
-            label = 2  
         else:
             label = 0
+        
+#         if row['kidney_low'] == 1:
+#             label = 1
+#         elif row['kidney_high'] == 1:
+#             label = 2  
+#         else:
+#             label = 0
 
         dicts.append({'image':os.path.basename(image), 'image_path':image, 'mask_path':mask, 'label':label})
     return dicts
+# -
 
 train_data_dicts = []
 valid_data_dicts = []
@@ -67,17 +77,25 @@ test_data_dicts = data_progress(test_df,test_data_dicts)
 print(f'\n Train:{len(train_data_dicts)},Valid:{len(valid_data_dicts)},Test:{len(test_data_dicts)}')
 
 
-transform = get_transform()
+labels = [item['label'] for item in train_data_dicts]
+print(Counter(labels))
 
-train_dataset = KidneyDataset(train_data_dicts, transform=transform)
-valid_dataset = KidneyDataset(valid_data_dicts, transform=transform)
-test_dataset = KidneyDataset(test_data_dicts, transform=transform)
+# +
+# transform = get_transform()
+# -
 
-train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
-valid_loader = DataLoader(valid_dataset, batch_size=8, shuffle=False)
-test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
+# train_dataset = KidneyDataset(train_data_dicts, transform=transform)
+# valid_dataset = KidneyDataset(valid_data_dicts, transform=transform)
+# test_dataset = KidneyDataset(test_data_dicts, transform=transform)
+train_dataset = KidneyDataset(train_data_dicts)
+valid_dataset = KidneyDataset(valid_data_dicts)
+test_dataset = KidneyDataset(test_data_dicts)
 
-trained_model = train_model(train_loader, valid_loader, num_classes=3, num_epochs=10)
+train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
+valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False)
+test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
+
+trained_model = train_model(train_loader, valid_loader, num_classes=len(set(labels)), num_epochs=1)
 
 # Use validate.py's evaluate_model function for evaluation with test_loader
 cm = evaluate_model_after_train(trained_model, test_loader)

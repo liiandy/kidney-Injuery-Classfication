@@ -78,13 +78,13 @@ def train_model(train_loader, valid_loader, num_classes=2, num_epochs=10, learni
         start_time = time.time()
 
         train_loss, train_acc = train_one_epoch(model, train_loader, criterion, optimizer, device)
+        print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f}")
+
         val_loss, val_acc = evaluate(model, valid_loader, criterion, device)
+        print(f"Val   Loss: {val_loss:.4f} | Val   Acc: {val_acc:.4f}")
 
         end_time = time.time()
         elapsed = end_time - start_time
-
-        print(f"Train Loss: {train_loss:.4f} | Train Acc: {train_acc:.4f}")
-        print(f"Val   Loss: {val_loss:.4f} | Val   Acc: {val_acc:.4f}")
         print(f"Time elapsed: {elapsed:.2f} seconds")
 
         if val_acc > best_val_acc:

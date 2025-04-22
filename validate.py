@@ -1,16 +1,13 @@
-import os
 import torch
-import pandas as pd
 import torch.nn as nn
-import matplotlib.pyplot as plt  
-
 from torch.utils.data import DataLoader
-from sklearn.model_selection import train_test_split
-from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
-
 from model import ResNet50WithMask
 from dataset import KidneyDataset, get_transform
-
+import pandas as pd
+from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+import matplotlib.pyplot as plt
+import os
 
 def load_data(csv_file, base_path):
     df = pd.read_csv(csv_file)
@@ -107,6 +104,8 @@ def evaluate_model_after_train(model, test_loader, device=None):
 
     print(f"Test Loss: {avg_loss:.4f}")
     print(f"Test Accuracy: {accuracy:.4f}")
+    
+    print(set(all_labels))
     
     # 計算混淆矩陣
     cm = confusion_matrix(all_labels, all_preds)

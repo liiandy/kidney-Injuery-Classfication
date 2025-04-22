@@ -28,19 +28,30 @@ print(f"✅ Total samples with mask found: {len(df)}")
 train_df, temp_df = train_test_split(
     df,
     test_size=0.4,  # 驗證 + 測試
-    random_state=42
+    random_state=42,
+    stratify=df["any_injury"]    # ← 根據類別標籤進行平衡分割
 )
 
 valid_df, test_df = train_test_split(
     temp_df,
     test_size=0.25,  # 10% 最後給測試
-    random_state=42
+    random_state=42,
+    stratify=temp_df["any_injury"]    # ← 根據類別標籤進行平衡分割
 )
 
 # 印出每個 set 的資料數量
 print(f"Train: {len(train_df)}")
+print(train_df["any_injury"].value_counts())
+print("\n")
+
 print(f"Valid: {len(valid_df)}")
+print(valid_df["any_injury"].value_counts())
+print("\n")
+
 print(f"Test: {len(test_df)}")
+print(test_df["any_injury"].value_counts())
+print("\n")
+
 
 # +
 def data_progress(df, dicts):

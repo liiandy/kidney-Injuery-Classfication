@@ -47,10 +47,10 @@ def apply_transform_based_on_label(image, label):
         # 對 kidney_low 樣本使用強增強
         transform = get_augmentation_for_imbalanced_class()
         image = transform(image)
-    elif label == 2:  # Kidney High
-        # 對 kidney_high 樣本使用強增強
-        transform = get_augmentation_for_imbalanced_class()
-        image = transform(image)
+#     elif label == 2:  # Kidney High
+#         # 對 kidney_high 樣本使用強增強
+#         transform = get_augmentation_for_imbalanced_class()
+#         image = transform(image)
     else:
         # 對健康樣本使用一般增強
         transform = get_transform()

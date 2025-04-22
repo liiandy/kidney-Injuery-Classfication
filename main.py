@@ -17,7 +17,6 @@ base_path = "/workspace/data/a313112015/BiomedParse/out_test/nifti/"
 
 # 新增一欄 'mask_path' 到 df
 df['mask_path'] = df['file_paths'].apply(lambda x: os.path.join(base_path, "kidney", *x.split("/")[-3:]))
-print(df['mask_path'][0])
 
 
 df = df[df['mask_path'].apply(os.path.exists)].reset_index(drop=True)

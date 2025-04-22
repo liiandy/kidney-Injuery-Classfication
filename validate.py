@@ -5,6 +5,8 @@ from model import ResNet50WithMask
 from dataset import KidneyDataset, get_transform
 import pandas as pd
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import confusion_matrix, ConfusionMatrixDisplay
+from matplotlib.pyplot import plt  
 import os
 
 def load_data(csv_file, base_path):
@@ -33,7 +35,7 @@ def evaluate_model(model_path, csv_file, base_path, batch_size=8, device=None):
     test_dataset = KidneyDataset(test_data_dicts, transform=transform)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
 
-    model = ResNet50WithMask(num_classes=2)
+    model = ResNet50WithMask(num_classes=3)
     model.load_state_dict(torch.load(model_path, map_location=device))
     model.to(device)
     model.eval()
@@ -63,6 +65,57 @@ def evaluate_model(model_path, csv_file, base_path, batch_size=8, device=None):
 
     print(f"Test Loss: {avg_loss:.4f}")
     print(f"Test Accuracy: {accuracy:.4f}")
+
+def evaluate_model_after_train(model, test_loader, device=None):
+    if device is None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    model.to(device)
+    model.eval()
+
+    criterion = nn.CrossEntropyLoss()
+
+    running_loss = 0.0
+    correct = 0
+    total = 0
+
+    all_preds = []
+    all_labels = []
+
+    with torch.no_grad():
+        for images, masks, labels in test_loader:
+            images = images.to(device)
+            masks = masks.to(device)
+            labels = labels.to(device)
+
+            outputs = model(images, masks)
+            loss = criterion(outputs, labels)
+
+            running_loss += loss.item() * images.size(0)
+            _, predicted = torch.max(outputs, 1)
+            total += labels.size(0)
+            correct += (predicted == labels).sum().item()
+
+            all_preds.extend(predicted.cpu().numpy())
+            all_labels.extend(labels.cpu().numpy())
+
+    avg_loss = running_loss / total
+    accuracy = correct / total
+
+    print(f"Test Loss: {avg_loss:.4f}")
+    print(f"Test Accuracy: {accuracy:.4f}")
+
+    # 混淆矩陣
+    cm = confusion_matrix(all_labels, all_preds)
+    disp = ConfusionMatrixDisplay(confusion_matrix=cm, display_labels=["kidney_health", "kidney_low", "kidney_high"])
+    disp.plot(cmap=plt.cm.Blues, values_format='d')
+    plt.title("Confusion Matrix")
+    plt.xlabel("Predicted Label")
+    plt.ylabel("True Label")
+    png_out_path = "confusion_matrix.png"
+    plt.savefig(png_out_path)
+
+    return cm
 
 if __name__ == "__main__":
     import argparse

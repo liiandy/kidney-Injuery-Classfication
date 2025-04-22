@@ -6,6 +6,7 @@ from sklearn.model_selection import train_test_split
 from torch.utils.data import DataLoader
 from dataset import KidneyDataset, get_transform
 from train import train_model
+from validate import evaluate_model, evaluate_model_after_train
 
 # 🔻 1. 讀取 CSV 檔案
 csv_file = "/workspace/data/a313112015/rsna_train_new_v2.csv"
@@ -35,7 +36,7 @@ valid_df, test_df = train_test_split(
     random_state=42
 )
 
-# ✅ 印出每個 set 的資料數量
+# 印出每個 set 的資料數量
 print(f"Train: {len(train_df)}")
 print(f"Valid: {len(valid_df)}")
 print(f"Test: {len(test_df)}")
@@ -77,4 +78,7 @@ train_loader = DataLoader(train_dataset, batch_size=8, shuffle=True)
 valid_loader = DataLoader(valid_dataset, batch_size=8, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=8, shuffle=False)
 
-train_model(train_loader, valid_loader, num_classes=3, num_epochs=10)
+trained_model = train_model(train_loader, valid_loader, num_classes=3, num_epochs=10)
+
+# Use validate.py's evaluate_model function for evaluation with test_loader
+cm = evaluate_model_after_train(trained_model, test_loader)

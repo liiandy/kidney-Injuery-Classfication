@@ -75,3 +75,4 @@ def train_model(train_loader, valid_loader, num_classes=2, num_epochs=10, learni
             torch.save(model.state_dict(), "best_model.pth")
 
     print("Training complete. Best validation accuracy: {:.4f}".format(best_val_acc))
+    return model

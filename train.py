@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.optim as optim
-from model import ResNet50WithMask
+from model import ResNet50WithMask, ResNet50
 from tqdm import tqdm
 import time
 import os
@@ -62,11 +62,17 @@ def evaluate(model, dataloader, criterion, device):
     epoch_acc = correct / total
     return epoch_loss, epoch_acc
 
-def train_model(train_loader, valid_loader, num_classes=2, num_epochs=10, learning_rate=0.001, device=None):
+def train_model(train_loader, valid_loader, mode='WithMask', num_classes=2, num_epochs=10, learning_rate=0.001, device=None):
     if device is None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    model = ResNet50WithMask(num_classes=num_classes).to(device)
+    
+    if mode == 'WithMask':
+        print("Running ResNet50WithMask")
+        model = ResNet50WithMask(num_classes=num_classes).to(device)
+    else:
+        print("Running ResNet50 (Without Mask)")
+        model = ResNet50(num_classes=num_classes).to(device)
+    
     criterion = nn.CrossEntropyLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 

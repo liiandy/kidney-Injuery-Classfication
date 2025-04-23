@@ -106,7 +106,7 @@ train_loader = DataLoader(train_dataset, batch_size=16, shuffle=True)
 valid_loader = DataLoader(valid_dataset, batch_size=16, shuffle=False)
 test_loader = DataLoader(test_dataset, batch_size=16, shuffle=False)
 
-trained_model = train_model(train_loader, valid_loader, num_classes=len(set(labels)), num_epochs=1)
+trained_model = train_model(train_loader, valid_loader, mode='NoMask', num_classes=len(set(labels)), num_epochs=1)
 
 # Use validate.py's evaluate_model function for evaluation with test_loader
 cm = evaluate_model_after_train(trained_model, test_loader)
